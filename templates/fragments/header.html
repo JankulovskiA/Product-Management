@@ -1,0 +1,42 @@
+<header xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="http://127.0.0.1:8081/products">PRODUCT MANAGEMENT</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+                    aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarsExampleDefault">
+                <ul class="navbar-nav m-auto">
+                    <li class="nav-item m-auto">
+                        <a class="nav-link active" href="http://127.0.0.1:8081/products">Products</a>
+                    </li>
+                    <li class="nav-item m-auto" >
+                        <a class="nav-link active" href="http://127.0.0.1:8081/categories">Categories</a>
+                    </li>
+                    <li class="nav-item m-auto" >
+                        <a class="nav-link active" href="http://127.0.0.1:8081/manufacturers">Manufacturers</a>
+                    </li>
+                    <li class="nav-item m-auto" >
+                        <a class="nav-link active" href="http://127.0.0.1:8082/orders">Orders</a>
+                    </li>
+                </ul>
+
+
+                <form class="form-inline my-2 my-lg-0">
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" aria-label="Small"
+                               aria-describedby="inputGroup-sizing-sm"
+                               placeholder="Search...">
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-secondary btn-number">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </nav>
+</header>

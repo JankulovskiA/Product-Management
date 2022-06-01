@@ -1,0 +1,30 @@
+<th:block xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #container{
+            margin-left: 150px;
+            margin-top: 70px;
+            margin-bottom: 300px;
+            width: 1200px;
+            color: white;
+        }
+        #first{
+        }
+        #second{
+            margin-top: 30px;
+        }
+
+    </style>
+</head>
+<body>
+<div id="container">
+    <a th:href="@{'/orders/add-form/{orderType}' (orderType='Import')}" id="first" type="button" class="btn btn-secondary btn-lg btn-block">Import</a>
+    <a th:href="@{'/orders/add-form/{orderType}' (orderType='Export')}" id="second" type="button" class="btn btn-secondary btn-lg btn-block">Export</a>
+</div>
+</body>
+</html>
+</th:block>
