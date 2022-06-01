@@ -24,7 +24,7 @@ public class ProductEventListener {
         }
         catch (Exception e)
         {
-            System.out.println("greska");
+
         }
     }
 

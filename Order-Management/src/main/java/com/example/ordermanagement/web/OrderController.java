@@ -1,6 +1,8 @@
 package com.example.ordermanagement.web;
 
+import com.example.ordermanagement.domain.model.Item;
 import com.example.ordermanagement.domain.model.Order;
+import com.example.ordermanagement.service.OrderItemService;
 import com.example.ordermanagement.service.OrderService;
 import com.example.sharedkernel.enumerations.OrderType;
 import lombok.AllArgsConstructor;
@@ -9,6 +11,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @AllArgsConstructor
 @RequestMapping("orders")
@@ -16,6 +20,7 @@ public class OrderController {
 
     private final OrderService orderService;
     private final ProductClient productClient;
+    private final OrderItemService orderItemService;
 
 
     @GetMapping
@@ -58,16 +63,38 @@ public class OrderController {
         model.addAttribute("order",o);
         model.addAttribute("bodyContent","add-order");
         model.addAttribute("products",productClient.findAll());
-        model.addAttribute("orderItems",o.getOrderItemList());
+        model.addAttribute("orderItems",orderItemService.findAll(o));
         return "master-template";
     }
 
-    @GetMapping("/delete-item/{id}")
-    public String deleteOrderItem(@PathVariable Long id)
+    @GetMapping("/remove-item/{id}")
+    public String removeOrderItem(@PathVariable Long id,@RequestParam Long orderId,Model model)
     {
-        return "";
+        Order o=orderService.removeOrderItem(id,orderId);
+        model.addAttribute("order",o);
+        model.addAttribute("bodyContent","add-order");
+        model.addAttribute("products",productClient.findAll());
+        model.addAttribute("orderItems",orderItemService.findAll(o));
+        return "master-template";
     }
 
+    @PostMapping("/add")
+    public String placeOrder(@RequestParam Long orderId,
+                             @RequestParam String description){
+        orderService.placeOrder(orderId,description);
+        return "redirect:/orders";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deleteOrder(@PathVariable Long id)
+    {
+        orderService.cancelOrder(id);
+        return "redirect:/orders";
+    }
+    //todo:da ne moze da se odzema poveke od koku so ima
+    //todo:da gi prikaze samo produktite so gi neame izbereno
+    //todo:formite da sa edna do edna
+    //todo:kako da ne dozvola kreiranje na order ako nema items u nego
 
 
 

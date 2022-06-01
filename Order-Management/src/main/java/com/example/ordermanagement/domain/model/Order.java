@@ -1,13 +1,10 @@
 package com.example.ordermanagement.domain.model;
 import com.example.sharedkernel.enumerations.OrderType;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -23,20 +20,11 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderType orderType;
     private Integer total;
-    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.EAGER)
-    List<OrderItem> orderItemList;
     private LocalDateTime date;
-    public Integer total()
-    {
-        return orderItemList.stream().mapToInt(e->e.price*e.quantity).sum();
-    }
+    private Integer itemNumber;
 
-
-
-    public Order(OrderType orderType, List<OrderItem> orderItemList) {
+    public Order(OrderType orderType, List<Item> itemList) {
         this.orderType = orderType;
-        this.orderItemList = orderItemList;
-        total=total();
         this.date = LocalDateTime.now();
     }
 
@@ -45,6 +33,7 @@ public class Order {
         this.date = LocalDateTime.now();
         this.description="";
         this.total=0;
+        this.itemNumber=0;
     }
 
     public void setTotal(Integer total) {
@@ -55,11 +44,15 @@ public class Order {
         this.orderType = orderType;
     }
 
-    public void setOrderItemList(List<OrderItem> orderItemList) {
-        this.orderItemList = orderItemList;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    public void setDate(LocalDateTime date) {
-        this.date = date;
+    public void addItem(){
+        this.itemNumber+=1;
+    }
+    public void removeItem()
+    {
+        this.itemNumber-=1;
     }
 }

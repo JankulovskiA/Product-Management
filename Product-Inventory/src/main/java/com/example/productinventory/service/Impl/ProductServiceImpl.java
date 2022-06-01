@@ -68,7 +68,9 @@ public class ProductServiceImpl implements ProductService {
             if (quantity > this.findById(productId).getAvailability()) {
                 throw new NotEnoughAvailableProductsException(productId);
             }
-            this.findById(productId).subtract(quantity);
+            Product p=this.findById(productId);
+            p.subtract(quantity);
+            productRepository.save(p);
         }
         else
         {
@@ -80,12 +82,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void orderItemRemoved(Long productId, int quantity,OrderType orderType) {
+        Product p=this.findById(productId);
         if(orderType.equals(OrderType.EXPORT)) {
-            this.findById(productId).add(quantity);
+            p.add(quantity);
         }
         else {
-            this.findById(productId).subtract(quantity);
+            p.subtract(quantity);
         }
+        productRepository.save(p);
     }
 
 }

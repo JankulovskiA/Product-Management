@@ -5,12 +5,11 @@
             <h1 class="jumbotron-heading">WEB PROGRAMMING SHOP</h1>
         </div>
     </section>
-
     <div class="container">
         <div class="row">
             <div class="col-md-5">
                 <form id="outer-form" class="form-horizontal form" action="/orders/add" method="POST">
-                    <input hidden id="id" name="id" th:value="${order.getId()}">
+                    <input hidden id="id" name="orderId" th:value="${order.getId()}">
                     <div class="form-group">
                         <label for="orderType">Order Type</label>
                         <input type="text"
@@ -36,44 +35,55 @@
                                id="description"
                                name="description"
                                th:value="(${order} != null ? ${order.getDescription()} : '')"
-                               placeholder="Enter description">
+                               placeholder="Enter description"
+                               required>
                     </div>
                     <div class="container mb-5">
                         <div class="row">
-                            <div class="col-12" th:if="${orderItems!=null}">
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead>
-                                        <tr>
-                                            <th scope="col">Product Name</th>
-                                            <th scope="col">Quantity</th>
-                                            <th scope="col">Price</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr th:each="orderItem : ${orderItems}" class="product">
-                                            <td th:text="${orderItem.getProductName()}"></td>
-                                            <td th:text="${orderItem.getQuantity()}"></td>
-                                            <td th:text="${orderItem.getPrice()}"></td>
-                                            <td class="text-right">
-                                                <th:block>
-                                                    <form th:action="@{'/products/delete/{id}' (id=${order.getId()})}" method="get">
-                                                        <button type="submit" class="btn btn-sm btn-danger delete-product">
-                                                            <i class="fa fa-trash">Delete</i>
-                                                        </button>
-                                                    </form>
-                                                </th:block>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <button id="submit" type="submit" class="btn btn-primary">Submit</button>
-                            <a type="button" class="btn btn-primary" href="/orders">Back</a>
+                            <button id="submit" type="submit" class="btn btn-primary" style="margin-left: 10px">Place Order</button>
+                            <a type="button" class="btn btn-primary" th:href="@{'/orders/delete/{id}' (id=${order.getId()})}">Delete Order</a>
                         </div>
                     </div>
                 </form>
+                <div class="col-12" th:if="${orderItems!=null}">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th scope="col">Product Name</th>
+                                <th scope="col">Quantity</th>
+                                <th scope="col">Price</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${orderItems}" class="product">
+                                <td th:text="${item.getProductName()}"></td>
+                                <td th:text="${item.getQuantity()}"></td>
+                                <td th:text="${item.getPrice()}"></td>
+                                <td class="text-right">
+                                    <th:block>
+                                        <form th:action="@{'/orders/remove-item/{id}' (id=${item.getId()})}" method="get">
+                                            <input hidden name="orderId" th:value="${order.getId()}">
+                                            <button type="submit" class="btn btn-sm btn-danger delete-product">
+                                                <i class="fa fa-trash">DeleteItem</i>
+                                            </button>
+                                        </form>
+                                    </th:block>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="form-group">
+                        <label for="total">Total</label>
+                        <input type="text"
+                               class="form-control"
+                               id="total"
+                               name="total"
+                               th:value="${order.getTotal()}"
+                               readonly>
+                    </div>
+                </div>
                 <form id="inner-form" class="form-horizontal form" action="/orders/add-item" method="POST">
                     <input hidden id="orderId" name="orderId" th:value="${order.getId()}">
                     <div class="form-group">
@@ -89,13 +99,15 @@
                                class="form-control"
                                id="quantity"
                                name="quantity"
-                               placeholder="Enter quantity">
+                               placeholder="Enter quantity"
+                        >
                         <label for="price">Price</label>
                         <input type="text"
                                class="form-control"
                                id="price"
                                name="price"
-                               placeholder="Enter price">
+                               placeholder="Enter price"
+                        >
                     </div>
                     <button type="submit" class="btn btn-primary">Add OrderItem</button>
                 </form>

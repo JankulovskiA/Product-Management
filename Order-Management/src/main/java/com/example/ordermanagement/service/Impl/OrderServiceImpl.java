@@ -1,14 +1,13 @@
 package com.example.ordermanagement.service.Impl;
 
 import com.example.ordermanagement.domain.dto.OrderDto;
-import com.example.ordermanagement.domain.dto.OrderItemDeleteDto;
-import com.example.ordermanagement.domain.dto.OrderItemDto;
+import com.example.ordermanagement.domain.exceptions.ItemDoesNotExistException;
+import com.example.ordermanagement.domain.model.Item;
+import com.example.ordermanagement.service.OrderItemService;
 import com.example.sharedkernel.enumerations.OrderType;
 import com.example.ordermanagement.domain.exceptions.OrderDoesNotExistException;
-import com.example.ordermanagement.domain.exceptions.OrderItemDoesNotExistException;
 import com.example.ordermanagement.domain.model.Order;
-import com.example.ordermanagement.domain.model.OrderItem;
-import com.example.ordermanagement.domain.repository.OrderItemRepository;
+import com.example.ordermanagement.domain.repository.ItemRepository;
 import com.example.ordermanagement.domain.repository.OrderRepository;
 import com.example.ordermanagement.service.OrderService;
 import com.example.sharedkernel.events.orders.OrderItemCreated;
@@ -17,16 +16,17 @@ import com.example.sharedkernel.infra.DomainEventPublisher;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class OrderServiceImpl  implements OrderService {
+public class OrderServiceImpl implements OrderService {
 
-    OrderRepository orderRepository;
-    OrderItemRepository orderItemRepository;
-    DomainEventPublisher domainEventPublisher;
+    private final OrderRepository orderRepository;
+    private final ItemRepository itemRepository;
+    private final DomainEventPublisher domainEventPublisher;
+    private final OrderItemService orderItemService;
 
 
     @Override
@@ -40,10 +40,8 @@ public class OrderServiceImpl  implements OrderService {
     }
 
     @Override
-    public List<OrderItem> listOrderItems(Long orderId) {
-        return orderRepository.findById(orderId)
-                .orElseThrow(()->new OrderDoesNotExistException(orderId))
-                .getOrderItemList();
+    public List<Item> listOrderItems(Long orderId) {
+        return orderItemService.findAll(this.findById(orderId));
     }
 
     @Override
@@ -55,37 +53,45 @@ public class OrderServiceImpl  implements OrderService {
     public Order addOrderItem(Long orderId,Long productId,String productName,Integer quantity,Integer price) {
         Order order=this.findById(orderId);
         domainEventPublisher.publish(new OrderItemCreated(productId,quantity,order.getOrderType()));
-        OrderItem orderItem = new OrderItem(productId,productName,quantity,price);
-        order.getOrderItemList().add(orderItem);
+        Item item = new Item(productId,productName,quantity,price);
+        itemRepository.save(item);
+        orderItemService.save(order, item);
+        order.setTotal(orderItemService.total(orderId));
+        order.addItem();
         orderRepository.save(order);
         return order;
     }
 
     @Override
-    public Order removeOrderItem(OrderItemDeleteDto orderItemDeleteDto) {
-        Long orderId=orderItemDeleteDto.getOrderId();
-        Long orderItemId=orderItemDeleteDto.getOrderItemId();
-        OrderItem orderItem=orderItemRepository
-                .findById(orderItemId)
-                .orElseThrow(()->new OrderItemDoesNotExistException(orderItemId));
-        this.findById(orderId).getOrderItemList().remove(orderItem);
-        domainEventPublisher.publish(new OrderItemRemoved(orderItem.getProductId(),orderItem.getQuantity(),this.findById(orderId).getOrderType()));
-        orderRepository.saveAndFlush(this.findById(orderId));
+    @Transactional
+    public Order removeOrderItem(Long id,Long orderId) {
+        Order order=this.findById(orderId);
+        Item item = itemRepository.findById(id).orElseThrow(()->new ItemDoesNotExistException(id));
+        domainEventPublisher.publish(new OrderItemRemoved(item.getProductId(), item.getQuantity(),this.findById(orderId).getOrderType()));
+        orderItemService.delete(order,item);
+        itemRepository.delete(item);
+        order.setTotal(orderItemService.total(orderId));
+        order.removeItem();
+        orderRepository.save(order);
         return this.findById(orderId);
     }
 
     @Override
-    public Order placeOrder(OrderDto orderDto) {
-        Order order=this.findById(orderDto.getOrderId());
-        order.setDate(LocalDateTime.now());
-        order.setTotal(order.total());
-        orderItemRepository.saveAll(order.getOrderItemList());
-        orderRepository.saveAndFlush(order);
+    public Order placeOrder(Long orderId,String description) {
+        Order order=this.findById(orderId);
+        order.setTotal(orderItemService.total(orderId));
+        order.setDescription(description);
+        orderRepository.save(order);
         return order;
     }
 
     @Override
+    @Transactional
     public void cancelOrder(Long orderId) {
+        Order order=this.findById(orderId);
+        List<Item> items=orderItemService.findAll(order);
+        orderItemService.deleteAll(order);
+        itemRepository.deleteAll(items);
         orderRepository.deleteById(orderId);
     }
 
@@ -96,7 +102,7 @@ public class OrderServiceImpl  implements OrderService {
         tmp.setOrderType(orderDto.getOrderType());
         //todo datata dali da moze da se menuva
         //tmp.setDate(orderDto.getDate());
-        tmp.setOrderItemList(orderDto.getOrderItemList());
+        //tmp.setOrderItemList(orderDto.getOrderItemList());
         return orderRepository.save(tmp);
     }
 
