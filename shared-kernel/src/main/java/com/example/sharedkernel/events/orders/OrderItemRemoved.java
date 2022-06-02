@@ -9,6 +9,8 @@ import java.time.Instant;
 
 @Getter
 public class OrderItemRemoved  extends DomainEvent {
+
+
     private Long productId;
     private int quantity;
     private OrderType orderType;

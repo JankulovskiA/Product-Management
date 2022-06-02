@@ -13,8 +13,8 @@ public interface OrderService {
     public Order addOrderItem(Long orderId,Long productId,String productName,Integer quantity,Integer price);
     public Order removeOrderItem(Long id,Long orderId);
     public Order create(OrderType orderType);
-    public Order placeOrder(Long orderId,String description);
+    public void placeOrder(Long orderId, String description);
     public void cancelOrder(Long orderId);
-    public Order update(Long orderId,OrderDto orderDto);
     public Order findById(Long orderId);
+    public boolean canAdd(OrderType orderType,Integer quantity,Long productId);
 }

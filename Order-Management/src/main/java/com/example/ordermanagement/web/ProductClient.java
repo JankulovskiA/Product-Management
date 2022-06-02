@@ -47,4 +47,8 @@ public class ProductClient {
                 .filter(p->p.getId().equals(productId)).findFirst()
                 .orElseThrow(()->new ProductDoesNotExitsException(productId));
     }
+    public Integer getAvailability(Long productId)
+    {
+        return this.findById(productId).getAvailability();
+    }
 }

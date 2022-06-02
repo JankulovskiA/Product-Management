@@ -1,118 +1,120 @@
 <th:block xmlns:th="http://www.thymeleaf.org">
     <body>
-    <section class="jumbotron text-center">
+        <section class="jumbotron text-center">
+            <div class="container">
+                <h1 class="jumbotron-heading">WEB PROGRAMMING SHOP</h1>
+            </div>
+        </section>
         <div class="container">
-            <h1 class="jumbotron-heading">WEB PROGRAMMING SHOP</h1>
-        </div>
-    </section>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-5">
-                <form id="outer-form" class="form-horizontal form" action="/orders/add" method="POST">
-                    <input hidden id="id" name="orderId" th:value="${order.getId()}">
-                    <div class="form-group">
-                        <label for="orderType">Order Type</label>
-                        <input type="text"
-                               class="form-control"
-                               id="orderType"
-                               name="orderType"
-                               th:value="${order.getOrderType()}"
-                               readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="date">Order date</label>
-                        <input type="text"
-                               class="form-control"
-                               id="date"
-                               name="date"
-                               th:value="${order.getDate()}"
-                               readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="description">Description</label>
-                        <input type="text"
-                               class="form-control"
-                               id="description"
-                               name="description"
-                               th:value="(${order} != null ? ${order.getDescription()} : '')"
-                               placeholder="Enter description"
-                               required>
-                    </div>
-                    <div class="container mb-5">
-                        <div class="row">
-                            <button id="submit" type="submit" class="btn btn-primary" style="margin-left: 10px">Place Order</button>
-                            <a type="button" class="btn btn-primary" th:href="@{'/orders/delete/{id}' (id=${order.getId()})}">Delete Order</a>
+            <div class="row">
+                <div class="col-xl-4">
+                    <th:block>
+                        <div th:if="${hasError}">
+                            <p class="ui-state-error-text" th:value="${error}"></p>
+                        </div>
+                    </th:block>
+                    <form id="inner-form" class="form-horizontal form" action="/orders/add-item" method="POST">
+                        <input hidden id="orderId" name="orderId" th:value="${order.getId()}">
+                        <div class="form-group">
+                            <label>Product</label>
+                            <select name="productId" class="form-control">
+                                <option th:each="prod : ${products}"
+                                        th:value="${prod.getId()}"
+                                        th:text="${prod.getName()}">
+                                </option>
+                            </select>
+                            <label for="quantity">Quantity</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="quantity"
+                                   name="quantity"
+                                   placeholder="Enter quantity"
+                            >
+                            <label for="price">Price</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="price"
+                                   name="price"
+                                   placeholder="Enter price"
+                            >
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add OrderItem</button>
+                    </form>
+                </div>
+                <div style="margin-left: 100px" class="col-xl-6">
+                    <div style="margin-left: -18px" class="col-12" th:if="${orderItems!=null}">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th scope="col">Product Name</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Price</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="item : ${orderItems}" class="product">
+                                    <td th:text="${item.getProductName()}"></td>
+                                    <td th:text="${item.getQuantity()}"></td>
+                                    <td th:text="${item.getPrice()}"></td>
+                                    <td class="text-right">
+                                        <th:block>
+                                            <form th:action="@{'/orders/remove-item/{id}' (id=${item.getId()})}" method="get">
+                                                <input hidden name="orderId" th:value="${order.getId()}">
+                                                <button type="submit" class="btn btn-sm btn-danger delete-product">
+                                                    <i class="fa fa-trash">DeleteItem</i>
+                                                </button>
+                                            </form>
+                                        </th:block>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-group">
+                            <b id="total"
+                               th:text="Total+':' +${order.getTotal()}"></b>
                         </div>
                     </div>
-                </form>
-                <div class="col-12" th:if="${orderItems!=null}">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                            <tr>
-                                <th scope="col">Product Name</th>
-                                <th scope="col">Quantity</th>
-                                <th scope="col">Price</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="item : ${orderItems}" class="product">
-                                <td th:text="${item.getProductName()}"></td>
-                                <td th:text="${item.getQuantity()}"></td>
-                                <td th:text="${item.getPrice()}"></td>
-                                <td class="text-right">
-                                    <th:block>
-                                        <form th:action="@{'/orders/remove-item/{id}' (id=${item.getId()})}" method="get">
-                                            <input hidden name="orderId" th:value="${order.getId()}">
-                                            <button type="submit" class="btn btn-sm btn-danger delete-product">
-                                                <i class="fa fa-trash">DeleteItem</i>
-                                            </button>
-                                        </form>
-                                    </th:block>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="form-group">
-                        <label for="total">Total</label>
-                        <input type="text"
-                               class="form-control"
-                               id="total"
-                               name="total"
-                               th:value="${order.getTotal()}"
-                               readonly>
-                    </div>
+                    <form id="outer-form" class="form-horizontal form" action="/orders/add" method="POST">
+                        <input hidden id="id" name="orderId" th:value="${order.getId()}">
+                        <div class="form-group">
+                            <label for="orderType">Order Type</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="orderType"
+                                   name="orderType"
+                                   th:value="${order.getOrderType()}"
+                                   readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="date">Order date</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="date"
+                                   name="date"
+                                   th:value="${order.getDate()}"
+                                   readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="description"
+                                   name="description"
+                                   th:value="(${order} != null ? ${order.getDescription()} : '')"
+                                   placeholder="Enter description"
+                                   required>
+                        </div>
+                        <div class="container mb-5">
+                            <div class="row">
+                                <button id="submit" type="submit" class="btn btn-primary" style="margin-left: 10px">Place Order</button>
+                                <a type="button" class="btn btn-primary" th:href="@{'/orders/delete/{id}' (id=${order.getId()})}">Delete Order</a>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <form id="inner-form" class="form-horizontal form" action="/orders/add-item" method="POST">
-                    <input hidden id="orderId" name="orderId" th:value="${order.getId()}">
-                    <div class="form-group">
-                        <label>Product</label>
-                        <select name="productId" class="form-control">
-                            <option th:each="prod : ${products}"
-                                    th:value="${prod.getId()}"
-                                    th:text="${prod.getName()}">
-                            </option>
-                        </select>
-                        <label for="quantity">Quantity</label>
-                        <input type="text"
-                               class="form-control"
-                               id="quantity"
-                               name="quantity"
-                               placeholder="Enter quantity"
-                        >
-                        <label for="price">Price</label>
-                        <input type="text"
-                               class="form-control"
-                               id="price"
-                               name="price"
-                               placeholder="Enter price"
-                        >
-                    </div>
-                    <button type="submit" class="btn btn-primary">Add OrderItem</button>
-                </form>
             </div>
         </div>
-    </div>
     </body>
 </th:block>

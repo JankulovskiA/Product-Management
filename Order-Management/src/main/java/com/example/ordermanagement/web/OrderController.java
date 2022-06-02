@@ -12,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @Controller
 @AllArgsConstructor
@@ -53,18 +54,35 @@ public class OrderController {
     }
 
     @PostMapping("/add-item")
-    public String addOrderItem(@RequestParam Long orderId,
+    public String addOrderItem(@RequestParam(required = false) String error,
+                               @RequestParam Long orderId,
                                @RequestParam Long productId,
                                @RequestParam Integer quantity,
                                @RequestParam Integer price,
                                Model model)
     {
-        Order o=orderService.addOrderItem(orderId,productId,productClient.findById(productId).getName(),quantity,price);
-        model.addAttribute("order",o);
-        model.addAttribute("bodyContent","add-order");
+        if(error != null && !Objects.equals(error, "null"))
+        {
+            model.addAttribute("hasError",true);
+            model.addAttribute("error",error);
+        }
+        Order order=orderService.findById(orderId);
+        if(orderService.canAdd(order.getOrderType(),quantity,productId))
+        {
+            Order tmp=orderService.addOrderItem(orderId,productId,productClient.findById(productId).getName(),quantity,price);
+            model.addAttribute("bodyContent","add-order");
+            model.addAttribute("orderItems",orderItemService.findAll(order));
+            model.addAttribute("order",tmp);
+
+        }
+        else {
+            model.addAttribute("bodyContent","add-order?Only"+productClient.getAvailability(productId)+"Available");
+            model.addAttribute("order",order);
+        }
         model.addAttribute("products",productClient.findAll());
-        model.addAttribute("orderItems",orderItemService.findAll(o));
         return "master-template";
+
+
     }
 
     @GetMapping("/remove-item/{id}")
@@ -93,7 +111,6 @@ public class OrderController {
     }
     //todo:da ne moze da se odzema poveke od koku so ima
     //todo:da gi prikaze samo produktite so gi neame izbereno
-    //todo:formite da sa edna do edna
     //todo:kako da ne dozvola kreiranje na order ako nema items u nego
 
 

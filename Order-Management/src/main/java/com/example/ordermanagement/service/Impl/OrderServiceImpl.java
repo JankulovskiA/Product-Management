@@ -4,6 +4,7 @@ import com.example.ordermanagement.domain.dto.OrderDto;
 import com.example.ordermanagement.domain.exceptions.ItemDoesNotExistException;
 import com.example.ordermanagement.domain.model.Item;
 import com.example.ordermanagement.service.OrderItemService;
+import com.example.ordermanagement.web.ProductClient;
 import com.example.sharedkernel.enumerations.OrderType;
 import com.example.ordermanagement.domain.exceptions.OrderDoesNotExistException;
 import com.example.ordermanagement.domain.model.Order;
@@ -27,6 +28,7 @@ public class OrderServiceImpl implements OrderService {
     private final ItemRepository itemRepository;
     private final DomainEventPublisher domainEventPublisher;
     private final OrderItemService orderItemService;
+    private final ProductClient productClient;
 
 
     @Override
@@ -37,6 +39,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order findById(Long orderId) {
         return orderRepository.findById(orderId).orElseThrow(()->new OrderDoesNotExistException(orderId));
+    }
+
+    @Override
+    public boolean canAdd(OrderType orderType, Integer quantity,Long productId) {
+        if (orderType.equals(OrderType.IMPORT))
+            return true;
+        return quantity <= productClient.getAvailability(productId);
     }
 
     @Override
@@ -59,7 +68,7 @@ public class OrderServiceImpl implements OrderService {
         order.setTotal(orderItemService.total(orderId));
         order.addItem();
         orderRepository.save(order);
-        return order;
+        return this.findById(orderId);
     }
 
     @Override
@@ -68,6 +77,7 @@ public class OrderServiceImpl implements OrderService {
         Order order=this.findById(orderId);
         Item item = itemRepository.findById(id).orElseThrow(()->new ItemDoesNotExistException(id));
         domainEventPublisher.publish(new OrderItemRemoved(item.getProductId(), item.getQuantity(),this.findById(orderId).getOrderType()));
+
         orderItemService.delete(order,item);
         itemRepository.delete(item);
         order.setTotal(orderItemService.total(orderId));
@@ -77,12 +87,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order placeOrder(Long orderId,String description) {
+    public void placeOrder(Long orderId, String description) {
         Order order=this.findById(orderId);
         order.setTotal(orderItemService.total(orderId));
         order.setDescription(description);
         orderRepository.save(order);
-        return order;
     }
 
     @Override
@@ -95,15 +104,5 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.deleteById(orderId);
     }
 
-    @Override
-    public Order update(Long orderId,OrderDto orderDto) {
-        Order tmp=orderRepository.findById(orderId)
-                .orElseThrow(()->new OrderDoesNotExistException(orderId));
-        tmp.setOrderType(orderDto.getOrderType());
-        //todo datata dali da moze da se menuva
-        //tmp.setDate(orderDto.getDate());
-        //tmp.setOrderItemList(orderDto.getOrderItemList());
-        return orderRepository.save(tmp);
-    }
 
 }
