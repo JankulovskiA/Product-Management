@@ -8,11 +8,9 @@
         <div class="container">
             <div class="row">
                 <div class="col-xl-4">
-                    <th:block>
                         <div th:if="${hasError}">
-                            <p class="ui-state-error-text" th:value="${error}"></p>
+                            <p style="color:red;" class="ui-state-error-text" th:text="${error}"></p>
                         </div>
-                    </th:block>
                     <form id="inner-form" class="form-horizontal form" action="/orders/add-item" method="POST">
                         <input hidden id="orderId" name="orderId" th:value="${order.getId()}">
                         <div class="form-group">
@@ -108,8 +106,8 @@
                         </div>
                         <div class="container mb-5">
                             <div class="row">
-                                <button id="submit" type="submit" class="btn btn-primary" style="margin-left: 10px">Place Order</button>
-                                <a type="button" class="btn btn-primary" th:href="@{'/orders/delete/{id}' (id=${order.getId()})}">Delete Order</a>
+                                <button id="submit" type="submit" class="btn btn-primary">Place Order</button>
+                                <a type="button" class="btn btn-danger" style="margin-left: 310px" th:href="@{'/orders/delete/{id}' (id=${order.getId()})}">Delete Order</a>
                             </div>
                         </div>
                     </form>

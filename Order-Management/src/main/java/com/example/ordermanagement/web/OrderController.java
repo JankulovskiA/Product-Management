@@ -61,25 +61,23 @@ public class OrderController {
                                @RequestParam Integer price,
                                Model model)
     {
-        if(error != null && !Objects.equals(error, "null"))
-        {
-            model.addAttribute("hasError",true);
-            model.addAttribute("error",error);
-        }
         Order order=orderService.findById(orderId);
         if(orderService.canAdd(order.getOrderType(),quantity,productId))
         {
             Order tmp=orderService.addOrderItem(orderId,productId,productClient.findById(productId).getName(),quantity,price);
             model.addAttribute("bodyContent","add-order");
             model.addAttribute("orderItems",orderItemService.findAll(order));
+            model.addAttribute("products",orderService.findProducts(orderId));
             model.addAttribute("order",tmp);
-
         }
         else {
-            model.addAttribute("bodyContent","add-order?Only"+productClient.getAvailability(productId)+"Available");
+            model.addAttribute("bodyContent","add-order");
+            model.addAttribute("hasError",true);
+            model.addAttribute("error","Only " + productClient.getAvailability(productId) + " Avalibale");
+            model.addAttribute("orderItems",orderItemService.findAll(order));
+            model.addAttribute("products",orderService.findProducts(orderId));
             model.addAttribute("order",order);
         }
-        model.addAttribute("products",productClient.findAll());
         return "master-template";
 
 
@@ -109,8 +107,6 @@ public class OrderController {
         orderService.cancelOrder(id);
         return "redirect:/orders";
     }
-    //todo:da ne moze da se odzema poveke od koku so ima
-    //todo:da gi prikaze samo produktite so gi neame izbereno
     //todo:kako da ne dozvola kreiranje na order ako nema items u nego
 
 

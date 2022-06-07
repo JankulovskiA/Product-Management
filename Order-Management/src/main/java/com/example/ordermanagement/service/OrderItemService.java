@@ -12,4 +12,5 @@ public interface OrderItemService {
     List<Item> findAll(Order order);
     OrderItem save(Order order,Item item);
     void deleteAll(Order order);
+    void deleteOrder(Order order);
 }

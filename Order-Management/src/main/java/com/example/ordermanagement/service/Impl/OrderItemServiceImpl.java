@@ -52,4 +52,9 @@ public class OrderItemServiceImpl implements OrderItemService {
         orderItemRepository.deleteAllByOrder(order);
     }
 
+    @Override
+    public void deleteOrder(Order order) {
+        this.findAll(order).forEach(e->this.delete(order,e));
+    }
+
 }

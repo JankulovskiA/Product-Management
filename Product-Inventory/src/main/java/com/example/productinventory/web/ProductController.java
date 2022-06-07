@@ -77,7 +77,7 @@ public class ProductController {
         if(id!=null){
             if(productService.findById(id)!=null)
             {
-                productService.edit(id,name,description,manufacturer,category);
+               productService.edit(id,name,description,manufacturer,category);
             }
         }
         else

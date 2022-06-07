@@ -3,6 +3,7 @@ package com.example.ordermanagement.service.Impl;
 import com.example.ordermanagement.domain.dto.OrderDto;
 import com.example.ordermanagement.domain.exceptions.ItemDoesNotExistException;
 import com.example.ordermanagement.domain.model.Item;
+import com.example.ordermanagement.domain.valueobjects.Product;
 import com.example.ordermanagement.service.OrderItemService;
 import com.example.ordermanagement.web.ProductClient;
 import com.example.sharedkernel.enumerations.OrderType;
@@ -18,7 +19,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -32,7 +36,17 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
+    @Transactional
     public List<Order> findAll() {
+        Order o;
+        if(orderRepository.findAll().stream().anyMatch(e-> !e.isActive())){
+            o=orderRepository.findAll().stream().filter(e-> !e.isActive()).collect(Collectors.toList()).get(0);
+            List<Item> items=orderItemService.findAll(o);
+            items.forEach(e->domainEventPublisher.publish(new OrderItemRemoved(e.getProductId(), e.getQuantity(),this.findById(o.getId()).getOrderType())));
+            orderItemService.deleteOrder(o);
+            itemRepository.deleteAll(items);
+            orderRepository.delete(o);
+        }
         return orderRepository.findAll();
     }
 
@@ -46,6 +60,12 @@ public class OrderServiceImpl implements OrderService {
         if (orderType.equals(OrderType.IMPORT))
             return true;
         return quantity <= productClient.getAvailability(productId);
+    }
+
+    @Override
+    public List<Product> findProducts(Long orderId) {
+        List<Item> items=orderItemService.findAll(this.findById(orderId));
+        return productClient.findAll().stream().filter(p->items.stream().noneMatch(i->i.getProductId().equals(p.getId()))).collect(Collectors.toList());
     }
 
     @Override
@@ -77,7 +97,6 @@ public class OrderServiceImpl implements OrderService {
         Order order=this.findById(orderId);
         Item item = itemRepository.findById(id).orElseThrow(()->new ItemDoesNotExistException(id));
         domainEventPublisher.publish(new OrderItemRemoved(item.getProductId(), item.getQuantity(),this.findById(orderId).getOrderType()));
-
         orderItemService.delete(order,item);
         itemRepository.delete(item);
         order.setTotal(orderItemService.total(orderId));
@@ -91,6 +110,7 @@ public class OrderServiceImpl implements OrderService {
         Order order=this.findById(orderId);
         order.setTotal(orderItemService.total(orderId));
         order.setDescription(description);
+        order.setActive();
         orderRepository.save(order);
     }
 
@@ -99,6 +119,7 @@ public class OrderServiceImpl implements OrderService {
     public void cancelOrder(Long orderId) {
         Order order=this.findById(orderId);
         List<Item> items=orderItemService.findAll(order);
+        items.forEach(e->domainEventPublisher.publish(new OrderItemRemoved(e.getProductId(), e.getQuantity(),this.findById(orderId).getOrderType())));
         orderItemService.deleteAll(order);
         itemRepository.deleteAll(items);
         orderRepository.deleteById(orderId);

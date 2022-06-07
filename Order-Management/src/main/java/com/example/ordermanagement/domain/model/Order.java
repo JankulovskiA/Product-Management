@@ -22,11 +22,7 @@ public class Order {
     private Integer total;
     private LocalDateTime date;
     private Integer itemNumber;
-
-    public Order(OrderType orderType, List<Item> itemList) {
-        this.orderType = orderType;
-        this.date = LocalDateTime.now();
-    }
+    private boolean active;
 
     public Order(OrderType orderType) {
         this.orderType = orderType;
@@ -34,14 +30,11 @@ public class Order {
         this.description="";
         this.total=0;
         this.itemNumber=0;
+        this.active=false;
     }
 
     public void setTotal(Integer total) {
         this.total = total;
-    }
-
-    public void setOrderType(OrderType orderType) {
-        this.orderType = orderType;
     }
 
     public void setDescription(String description) {
@@ -51,6 +44,11 @@ public class Order {
     public void addItem(){
         this.itemNumber+=1;
     }
+
+    public void setActive() {
+        this.active = true;
+    }
+
     public void removeItem()
     {
         this.itemNumber-=1;
